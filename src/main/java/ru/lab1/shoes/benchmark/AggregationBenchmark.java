@@ -27,7 +27,8 @@ import ru.lab1.shoes.model.Brand;
 @Fork(1)
 public class AggregationBenchmark {
 
-	@Param({"1000", "5000", "10000", "50000", "100000"})
+	// Расширенный диапазон для поиска точки равенства производительности
+	@Param({"100", "500", "1000", "2000", "5000", "10000", "20000", "50000", "100000", "200000"})
 	public int size;
 
 	private List<Shoe> shoes;

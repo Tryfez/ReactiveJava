@@ -329,11 +329,17 @@ public final class Aggregations {
 	/**
 	 * LAB2: Собственный Spliterator для оптимизации параллельной обработки
 	 */
+	/**
+	 * LAB2: Собственный Spliterator для оптимизации параллельной обработки
+	 * Оптимизирован для эффективного разделения на подзадачи
+	 */
 	public static final class ShoeSpliterator implements Spliterator<Shoe> {
 		private final List<Shoe> shoes;
 		private int start;
 		private final int end;
-		private static final int THRESHOLD = 1000; // Порог для разделения
+		// Оптимальный порог: достаточно мал для хорошего параллелизма,
+		// но достаточно велик, чтобы избежать излишнего разделения
+		private static final int THRESHOLD = 1000;
 
 		public ShoeSpliterator(List<Shoe> shoes, int start, int end) {
 			this.shoes = shoes;
@@ -356,10 +362,12 @@ public final class Aggregations {
 			int currentEnd = end;
 			int size = currentEnd - currentStart;
 			
+			// Не разделяем, если размер меньше порога
 			if (size < THRESHOLD) {
-				return null; // Не разделяем, если размер меньше порога
+				return null;
 			}
 			
+			// Разделяем пополам для балансировки нагрузки
 			int mid = currentStart + size / 2;
 			start = mid;
 			return new ShoeSpliterator(shoes, currentStart, mid);
@@ -372,6 +380,10 @@ public final class Aggregations {
 
 		@Override
 		public int characteristics() {
+			// SIZED - известен точный размер
+			// SUBSIZED - размеры подсплитераторов тоже известны
+			// ORDERED - порядок элементов важен (хотя для агрегации не критично)
+			// IMMUTABLE - список не изменяется во время итерации
 			return Spliterator.SIZED | Spliterator.SUBSIZED | 
 			       Spliterator.ORDERED | Spliterator.IMMUTABLE;
 		}
