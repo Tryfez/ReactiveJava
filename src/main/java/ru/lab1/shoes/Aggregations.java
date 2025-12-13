@@ -52,10 +52,10 @@ public final class Aggregations {
 		return shoes.stream().collect(new AvgSizeByBrandCollector());
 	}
 
-	// ========== LAB2: Методы с задержкой ==========
+	// Методы с задержкой
 	
 	/**
-	 * LAB2: Получить бренд с задержкой (имитация получения из БД)
+	 * Получить бренд с задержкой
 	 */
 	public static Brand getBrand(Shoe shoe, long delay) {
 		if (delay > 0) {
@@ -69,7 +69,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Стандартный стрим с задержкой получения бренда
+	 * Стандартный стрим с задержкой получения бренда
 	 */
 	public static Map<Brand, Double> averageSizeByBrandStreamWithDelay(
 		java.util.Collection<Shoe> shoes, long delay) {
@@ -80,10 +80,10 @@ public final class Aggregations {
 			));
 	}
 
-	// ========== LAB2: Параллельные стримы ==========
+	// ========== Параллельные стримы ==========
 	
 	/**
-	 * LAB2: Параллельный стрим без задержки с потокобезопасной коллекцией
+	 * Параллельный стрим без задержки с потокобезопасной коллекцией
 	 */
 	public static Map<Brand, Double> averageSizeByBrandParallelStream(
 		java.util.Collection<Shoe> shoes) {
@@ -95,7 +95,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Параллельный стрим с задержкой и потокобезопасной коллекцией
+	 * Параллельный стрим с задержкой и потокобезопасной коллекцией
 	 */
 	public static Map<Brand, Double> averageSizeByBrandParallelStreamWithDelay(
 		java.util.Collection<Shoe> shoes, long delay) {
@@ -107,7 +107,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Параллельный стрим с кастомным коллектором и потокобезопасной коллекцией
+	 * Параллельный стрим с кастомным коллектором и потокобезопасной коллекцией
 	 */
 	public static Map<Brand, Double> averageSizeByBrandParallelWithCustomCollector(
 		java.util.Collection<Shoe> shoes) {
@@ -115,17 +115,17 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Параллельный стрим с кастомным коллектором, задержкой и потокобезопасной коллекцией
+	 * Параллельный стрим с кастомным коллектором, задержкой и потокобезопасной коллекцией
 	 */
 	public static Map<Brand, Double> averageSizeByBrandParallelWithCustomCollectorAndDelay(
 		java.util.Collection<Shoe> shoes, long delay) {
 		return shoes.parallelStream().collect(new AvgSizeByBrandCollectorConcurrentWithDelay(delay));
 	}
 
-	// ========== LAB2: Кастомный Spliterator ==========
+	// ========== Кастомный Spliterator ==========
 	
 	/**
-	 * LAB2: Параллельный стрим с собственным Spliterator
+	 * Параллельный стрим с собственным Spliterator
 	 */
 	public static Map<Brand, Double> averageSizeByBrandWithCustomSpliterator(
 		List<Shoe> shoes) {
@@ -138,7 +138,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Параллельный стрим с собственным Spliterator и задержкой
+	 * Параллельный стрим с собственным Spliterator и задержкой
 	 */
 	public static Map<Brand, Double> averageSizeByBrandWithCustomSpliteratorAndDelay(
 		List<Shoe> shoes, long delay) {
@@ -199,10 +199,10 @@ public final class Aggregations {
 		}
 	}
 
-	// ========== LAB2: Потокобезопасный коллектор ==========
+	// ========== Потокобезопасный коллектор ==========
 	
 	/**
-	 * LAB2: Потокобезопасный коллектор для параллельных стримов
+	 * Потокобезопасный коллектор для параллельных стримов
 	 */
 	public static final class AvgSizeByBrandCollectorConcurrent 
 		implements Collector<Shoe, Map<Brand, long[]>, Map<Brand, Double>> {
@@ -260,7 +260,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Потокобезопасный коллектор с задержкой
+	 * Потокобезопасный коллектор с задержкой
 	 */
 	public static final class AvgSizeByBrandCollectorConcurrentWithDelay 
 		implements Collector<Shoe, Map<Brand, long[]>, Map<Brand, Double>> {
@@ -324,22 +324,17 @@ public final class Aggregations {
 		}
 	}
 
-	// ========== LAB2: Собственный Spliterator ==========
-	
+	// ========== Собственный Spliterator ==========
 	/**
-	 * LAB2: Собственный Spliterator для оптимизации параллельной обработки
-	 */
-	/**
-	 * LAB2: Собственный Spliterator для оптимизации параллельной обработки
-	 * Оптимизирован для эффективного разделения на подзадачи
+	 * Оптимизированный Spliterator для параллельной обработки
+	 * Использует более агрессивное разделение и батчинг для улучшения производительности
 	 */
 	public static final class ShoeSpliterator implements Spliterator<Shoe> {
 		private final List<Shoe> shoes;
 		private int start;
 		private final int end;
-		// Оптимальный порог: достаточно мал для хорошего параллелизма,
-		// но достаточно велик, чтобы избежать излишнего разделения
-		private static final int THRESHOLD = 1000;
+		// Уменьшен порог для более агрессивного разделения (как у стандартного ArrayList)
+		private static final int THRESHOLD = 100;
 
 		public ShoeSpliterator(List<Shoe> shoes, int start, int end) {
 			this.shoes = shoes;
@@ -357,6 +352,15 @@ public final class Aggregations {
 		}
 
 		@Override
+		public void forEachRemaining(java.util.function.Consumer<? super Shoe> action) {
+			// Оптимизация: обрабатываем все оставшиеся элементы за один раз
+			// Это быстрее, чем многократные вызовы tryAdvance
+			while (start < end) {
+				action.accept(shoes.get(start++));
+			}
+		}
+
+		@Override
 		public Spliterator<Shoe> trySplit() {
 			int currentStart = start;
 			int currentEnd = end;
@@ -367,7 +371,8 @@ public final class Aggregations {
 				return null;
 			}
 			
-			// Разделяем пополам для балансировки нагрузки
+			// Более агрессивное разделение: делим на части, пропорциональные количеству потоков
+			// Для лучшей балансировки используем деление на 2 (как стандартный Spliterator)
 			int mid = currentStart + size / 2;
 			start = mid;
 			return new ShoeSpliterator(shoes, currentStart, mid);
