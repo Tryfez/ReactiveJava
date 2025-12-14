@@ -333,7 +333,10 @@ public final class Aggregations {
 		private final List<Shoe> shoes;
 		private int start;
 		private final int end;
-		// Уменьшен порог для более агрессивного разделения (как у стандартного ArrayList)
+		// Порог для разделения: можно экспериментировать с разными значениями
+		// Меньшие значения (50-100) дают больше разделений, но больше overhead
+		// Большие значения (500-1000) дают меньше разделений, но меньше overhead
+		// Оптимальное значение зависит от размера данных и количества потоков
 		private static final int THRESHOLD = 100;
 
 		public ShoeSpliterator(List<Shoe> shoes, int start, int end) {
@@ -389,8 +392,9 @@ public final class Aggregations {
 			// SUBSIZED - размеры подсплитераторов тоже известны
 			// ORDERED - порядок элементов важен (хотя для агрегации не критично)
 			// IMMUTABLE - список не изменяется во время итерации
+			// NONNULL - элементы гарантированно не null (генератор не создает null элементы)
 			return Spliterator.SIZED | Spliterator.SUBSIZED | 
-			       Spliterator.ORDERED | Spliterator.IMMUTABLE;
+			       Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
 		}
 	}
 

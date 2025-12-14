@@ -24,7 +24,7 @@ import ru.lab1.shoes.model.Brand;
 @State(Scope.Benchmark)
 @Warmup(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
+@Fork(value = 2, warmups = 1)  // 2 форка с 1 разогревом для более точных измерений
 public class AggregationBenchmark {
 
 	// Расширенный диапазон для поиска точки равенства производительности
