@@ -12,6 +12,13 @@ import java.util.stream.Collectors;
 import java.util.Spliterator;
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableConverter;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.reactivestreams.Subscription;
+
 import ru.lab1.shoes.model.Brand;
 import ru.lab1.shoes.model.Shoe;
 
@@ -52,10 +59,10 @@ public final class Aggregations {
 		return shoes.stream().collect(new AvgSizeByBrandCollector());
 	}
 
-	// ========== LAB2: Методы с задержкой ==========
+	// ========== Методы с задержкой ==========
 	
 	/**
-	 * LAB2: Получить бренд с задержкой (имитация получения из БД)
+	 * Получить бренд с задержкой (имитация получения из БД)
 	 */
 	public static Brand getBrand(Shoe shoe, long delay) {
 		if (delay > 0) {
@@ -69,7 +76,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Стандартный стрим с задержкой получения бренда
+	 * Стандартный стрим с задержкой получения бренда
 	 */
 	public static Map<Brand, Double> averageSizeByBrandStreamWithDelay(
 		java.util.Collection<Shoe> shoes, long delay) {
@@ -80,10 +87,10 @@ public final class Aggregations {
 			));
 	}
 
-	// ========== LAB2: Параллельные стримы ==========
+	// ========== Параллельные стримы ==========
 	
 	/**
-	 * LAB2: Параллельный стрим без задержки с потокобезопасной коллекцией
+	 * Параллельный стрим без задержки с потокобезопасной коллекцией
 	 */
 	public static Map<Brand, Double> averageSizeByBrandParallelStream(
 		java.util.Collection<Shoe> shoes) {
@@ -95,7 +102,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Параллельный стрим с задержкой и потокобезопасной коллекцией
+	 * Параллельный стрим с задержкой и потокобезопасной коллекцией
 	 */
 	public static Map<Brand, Double> averageSizeByBrandParallelStreamWithDelay(
 		java.util.Collection<Shoe> shoes, long delay) {
@@ -107,7 +114,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Параллельный стрим с кастомным коллектором и потокобезопасной коллекцией
+	 * Параллельный стрим с кастомным коллектором и потокобезопасной коллекцией
 	 */
 	public static Map<Brand, Double> averageSizeByBrandParallelWithCustomCollector(
 		java.util.Collection<Shoe> shoes) {
@@ -115,17 +122,17 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Параллельный стрим с кастомным коллектором, задержкой и потокобезопасной коллекцией
+	 * Параллельный стрим с кастомным коллектором, задержкой и потокобезопасной коллекцией
 	 */
 	public static Map<Brand, Double> averageSizeByBrandParallelWithCustomCollectorAndDelay(
 		java.util.Collection<Shoe> shoes, long delay) {
 		return shoes.parallelStream().collect(new AvgSizeByBrandCollectorConcurrentWithDelay(delay));
 	}
 
-	// ========== LAB2: Кастомный Spliterator ==========
+	// ========== Кастомный Spliterator ==========
 	
 	/**
-	 * LAB2: Параллельный стрим с собственным Spliterator
+	 * Параллельный стрим с собственным Spliterator
 	 */
 	public static Map<Brand, Double> averageSizeByBrandWithCustomSpliterator(
 		List<Shoe> shoes) {
@@ -138,7 +145,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Параллельный стрим с собственным Spliterator и задержкой
+	 * Параллельный стрим с собственным Spliterator и задержкой
 	 */
 	public static Map<Brand, Double> averageSizeByBrandWithCustomSpliteratorAndDelay(
 		List<Shoe> shoes, long delay) {
@@ -199,10 +206,10 @@ public final class Aggregations {
 		}
 	}
 
-	// ========== LAB2: Потокобезопасный коллектор ==========
+	// ========== Потокобезопасный коллектор ==========
 	
 	/**
-	 * LAB2: Потокобезопасный коллектор для параллельных стримов
+	 * Потокобезопасный коллектор для параллельных стримов
 	 */
 	public static final class AvgSizeByBrandCollectorConcurrent 
 		implements Collector<Shoe, Map<Brand, long[]>, Map<Brand, Double>> {
@@ -260,7 +267,7 @@ public final class Aggregations {
 	}
 
 	/**
-	 * LAB2: Потокобезопасный коллектор с задержкой
+	 * Потокобезопасный коллектор с задержкой
 	 */
 	public static final class AvgSizeByBrandCollectorConcurrentWithDelay 
 		implements Collector<Shoe, Map<Brand, long[]>, Map<Brand, Double>> {
@@ -324,10 +331,10 @@ public final class Aggregations {
 		}
 	}
 
-	// ========== LAB2: Собственный Spliterator ==========
+	// ========== Собственный Spliterator ==========
 	
 	/**
-	 * LAB2: Собственный Spliterator для оптимизации параллельной обработки
+	 * Собственный Spliterator для оптимизации параллельной обработки
 	 */
 	public static final class ShoeSpliterator implements Spliterator<Shoe> {
 		private final List<Shoe> shoes;
@@ -377,11 +384,169 @@ public final class Aggregations {
 		}
 	}
 
-	/*
-	private static final class EnumMapLike<K extends Enum<K>, V> extends HashMap<K, V> {
-		private static final long serialVersionUID = 1L;
+	// ========== Реактивные потоки RxJava ==========
+	
+	/**
+	 * Подсчет статистики с помощью Observable и многопоточного Scheduler
+	 * Использует Observable для асинхронной обработки с задержкой
+	 */
+	public static Map<Brand, Double> averageSizeByBrandObservable(
+		java.util.Collection<Shoe> shoes, long delay) {
+		int cores = Runtime.getRuntime().availableProcessors();
+		int parallelism = Math.max(cores * 3, 32);
+		int batchSize = Math.max(shoes.size() / parallelism, 1);
+		
+		return Observable.fromIterable(shoes)
+			.buffer(batchSize)
+			.flatMap(batch -> 
+				Observable.fromCallable(() -> {
+					Map<Brand, long[]> batchResult = new HashMap<>();
+					for (Shoe shoe : batch) {
+						Brand brand = getBrand(shoe, delay);
+						long[] sc = batchResult.computeIfAbsent(brand, k -> new long[2]);
+						sc[0] += shoe.getSize();
+						sc[1] += 1;
+					}
+					return batchResult;
+				})
+				.subscribeOn(Schedulers.io()),
+				false,
+				parallelism
+			)
+			.reduce(new ConcurrentHashMap<Brand, long[]>(), (acc, batchResult) -> {
+
+				for (Map.Entry<Brand, long[]> e : batchResult.entrySet()) {
+					acc.compute(e.getKey(), (key, existing) -> {
+						if (existing == null) {
+							existing = new long[2];
+						}
+						existing[0] += e.getValue()[0];
+						existing[1] += e.getValue()[1];
+						return existing;
+					});
+				}
+				return acc;
+			})
+			.map(acc -> calculateAverages(acc))
+			.blockingGet();
 	}
-	*/
+	
+	/**
+	 * Подсчет статистики с помощью Observable без задержки (для сравнения)
+	 */
+	public static Map<Brand, Double> averageSizeByBrandObservableNoDelay(
+		java.util.Collection<Shoe> shoes) {
+		return Observable.fromIterable(shoes)
+			.subscribeOn(Schedulers.io())
+			.observeOn(Schedulers.computation())
+			.collect(
+				() -> new ConcurrentHashMap<Brand, long[]>(),
+				(acc, shoe) -> {
+					Brand brand = shoe.getBrand();
+					long[] sc = acc.computeIfAbsent(brand, k -> new long[2]);
+					synchronized (sc) {
+						sc[0] += shoe.getSize();
+						sc[1] += 1;
+					}
+				}
+			)
+			.map(acc -> calculateAverages(acc))
+			.blockingGet();
+	}
+	
+	/**
+	 * Подсчет статистики с помощью Flowable и собственного Subscriber с backpressure
+	 * Генерация элементов производится асинхронно с поддержкой backpressure
+	 */
+	public static Map<Brand, Double> averageSizeByBrandFlowableWithBackpressure(
+		int count, long seed) {
+		// Создаем список элементов для Flowable (генерация без задержки)
+		List<Shoe> shoes = Generators.generateShoes(count, seed);
+		
+		return Flowable.fromIterable(shoes)
+			.onBackpressureBuffer() // Управление backpressure
+			.observeOn(Schedulers.io())
+			.flatMap(shoe -> Flowable.just(shoe), false, Runtime.getRuntime().availableProcessors())
+			.observeOn(Schedulers.computation())
+			.to(new ShoeFlowableConverter(128L))
+			.blockingGet();
+	}
+	
+	/**
+	 * FlowableConverter для подсчета статистики с регулированием скорости поступления элементов
+	 * Реализует backpressure для контроля скорости обработки
+	 */
+	public static final class ShoeFlowableConverter 
+		implements FlowableConverter<Shoe, Single<Map<Brand, Double>>>, org.reactivestreams.Subscriber<Shoe> {
+		
+		private Map<Brand, long[]> accumulator = new ConcurrentHashMap<>();
+		private io.reactivex.rxjava3.subjects.SingleSubject<Map<Brand, Double>> single = 
+			io.reactivex.rxjava3.subjects.SingleSubject.create();
+		private Subscription subscription;
+		private final long batchSize;
+		private long processedElementsCounter = 0L;
+		
+		public ShoeFlowableConverter(long batchSize) {
+			this.batchSize = batchSize;
+		}
+		
+		@Override
+		public void onSubscribe(Subscription s) {
+			this.subscription = s;
+			subscription.request(batchSize);
+		}
+		
+		@Override
+		public void onNext(Shoe shoe) {
+			Brand brand = shoe.getBrand();
+			long[] sc = accumulator.computeIfAbsent(brand, k -> new long[2]);
+			synchronized (sc) {
+				sc[0] += shoe.getSize();
+				sc[1] += 1;
+			}
+			
+			processedElementsCounter++;
+			if (processedElementsCounter % batchSize == 0) {
+				subscription.request(batchSize);
+			}
+		}
+		
+		@Override
+		public void onError(Throwable t) {
+			t.printStackTrace();
+			single.onError(t);
+		}
+		
+		@Override
+		public void onComplete() {
+			Map<Brand, Double> result = new HashMap<>();
+			for (Map.Entry<Brand, long[]> e : accumulator.entrySet()) {
+				long sum = e.getValue()[0];
+				long cnt = e.getValue()[1];
+				result.put(e.getKey(), cnt == 0 ? 0.0 : (double) sum / cnt);
+			}
+			single.onSuccess(result);
+		}
+		
+		@Override
+		public Single<Map<Brand, Double>> apply(Flowable<Shoe> upstream) {
+			upstream.subscribe(this);
+			return single;
+		}
+	}
+	
+	/*
+	  Вспомогательный метод для вычисления средних значений
+	 */
+	private static Map<Brand, Double> calculateAverages(Map<Brand, long[]> accumulator) {
+		Map<Brand, Double> result = new HashMap<>();
+		for (Map.Entry<Brand, long[]> e : accumulator.entrySet()) {
+			long sum = e.getValue()[0];
+			long cnt = e.getValue()[1];
+			result.put(e.getKey(), cnt == 0 ? 0.0 : (double) sum / cnt);
+		}
+		return result;
+	}
 }
 
 
