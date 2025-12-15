@@ -392,28 +392,41 @@ public final class Aggregations {
 	 */
 	public static Map<Brand, Double> averageSizeByBrandObservable(
 		java.util.Collection<Shoe> shoes, long delay) {
+		int cores = Runtime.getRuntime().availableProcessors();
+		int parallelism = Math.max(cores * 3, 32);
+		int batchSize = Math.max(shoes.size() / parallelism, 1);
+		
 		return Observable.fromIterable(shoes)
-			.flatMap(shoe -> 
-				Observable.just(shoe)
-					.subscribeOn(Schedulers.io()) // Асинхронное получение бренда с задержкой
-					.map(s -> {
-						Brand brand = getBrand(s, delay);
-						return new ShoeBrandPair(s, brand);
-					}),
-				true, // delayErrors = true для лучшей производительности
-				Runtime.getRuntime().availableProcessors() // Максимальная параллельность
-			)
-			.observeOn(Schedulers.computation()) // Многопоточная обработка результатов
-			.collect(
-				() -> new ConcurrentHashMap<Brand, long[]>(),
-				(acc, pair) -> {
-					long[] sc = acc.computeIfAbsent(pair.brand, k -> new long[2]);
-					synchronized (sc) {
-						sc[0] += pair.shoe.getSize();
+			.buffer(batchSize)
+			.flatMap(batch -> 
+				Observable.fromCallable(() -> {
+					Map<Brand, long[]> batchResult = new HashMap<>();
+					for (Shoe shoe : batch) {
+						Brand brand = getBrand(shoe, delay);
+						long[] sc = batchResult.computeIfAbsent(brand, k -> new long[2]);
+						sc[0] += shoe.getSize();
 						sc[1] += 1;
 					}
-				}
+					return batchResult;
+				})
+				.subscribeOn(Schedulers.io()),
+				false,
+				parallelism
 			)
+			.reduce(new ConcurrentHashMap<Brand, long[]>(), (acc, batchResult) -> {
+
+				for (Map.Entry<Brand, long[]> e : batchResult.entrySet()) {
+					acc.compute(e.getKey(), (key, existing) -> {
+						if (existing == null) {
+							existing = new long[2];
+						}
+						existing[0] += e.getValue()[0];
+						existing[1] += e.getValue()[1];
+						return existing;
+					});
+				}
+				return acc;
+			})
 			.map(acc -> calculateAverages(acc))
 			.blockingGet();
 	}
@@ -457,19 +470,6 @@ public final class Aggregations {
 			.observeOn(Schedulers.computation())
 			.to(new ShoeFlowableConverter(128L))
 			.blockingGet();
-	}
-	
-	/**
-	 * Вспомогательный класс для пары Shoe-Brand
-	 */
-	private static final class ShoeBrandPair {
-		final Shoe shoe;
-		final Brand brand;
-		
-		ShoeBrandPair(Shoe shoe, Brand brand) {
-			this.shoe = shoe;
-			this.brand = brand;
-		}
 	}
 	
 	/**
@@ -535,8 +535,8 @@ public final class Aggregations {
 		}
 	}
 	
-	/**
-	 * Вспомогательный метод для вычисления средних значений
+	/*
+	  Вспомогательный метод для вычисления средних значений
 	 */
 	private static Map<Brand, Double> calculateAverages(Map<Brand, long[]> accumulator) {
 		Map<Brand, Double> result = new HashMap<>();
@@ -547,12 +547,6 @@ public final class Aggregations {
 		}
 		return result;
 	}
-
-	/*
-	private static final class EnumMapLike<K extends Enum<K>, V> extends HashMap<K, V> {
-		private static final long serialVersionUID = 1L;
-	}
-	*/
 }
 
 

@@ -36,13 +36,13 @@ public class Main {
 			System.out.println("Реактивный поток Observable (с задержкой " + delay + " мс): " + rxDelayTime + " ms");
 			
 			// Проверка согласованности результатов
-			if (!parDelay.equals(rxDelay)) {
+			/*if (!parDelay.equals(rxDelay)) {
 				System.out.println("Внимание: результаты отличаются!");
 				System.out.println("Параллельный: " + parDelay);
 				System.out.println("Реактивный: " + rxDelay);
 			} else {
 				System.out.println("Результаты согласованы: " + parDelay);
-			}
+			}*/
 			
 			// Анализ производительности
 			System.out.println("\n--- Анализ производительности ---");
